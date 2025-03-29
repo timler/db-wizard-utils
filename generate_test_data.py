@@ -11,6 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from dotenv import load_dotenv
 from openai import OpenAI
 from tqdm import tqdm
+from logging_utils import setup_logging
 
 from database_analyzer import DatabaseDependencyAnalyzer
 
@@ -55,31 +56,6 @@ def load_config():
     config['SAVE_SQL'] = os.getenv('SAVE_SQL', 'true').lower() == 'true'
 
     return config
-
-def setup_logging(log_level):
-    """Setup logging configuration"""
-    # Create logs directory if it doesn't exist
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
-
-    # Create logger
-    logger = logging.getLogger('test_data_generator')
-    logger.setLevel(getattr(logging, log_level))
-    logger.handlers = []  # Remove any existing handlers
-
-    # File handler
-    timestamp = datetime.now().strftime('%Y%m%d')
-    file_handler = logging.FileHandler(f'logs/test_data_generation_{timestamp}.log')
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-    logger.addHandler(file_handler)
-
-    # Console handler (errors only)
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.ERROR)
-    console_handler.setFormatter(logging.Formatter('ERROR: %(message)s'))
-    logger.addHandler(console_handler)
-
-    return logger
 
 class DataGeneratorError(Exception):
     """Base exception class for DataGenerator"""
@@ -430,7 +406,7 @@ def main():
     try:
         # Load configuration and setup logging
         config = load_config()
-        logger = setup_logging(config['LOG_LEVEL'])
+        logger = setup_logging('test_data_generator', config['LOG_LEVEL'])
 
         # Parse command line arguments
         parser = argparse.ArgumentParser(description='Generate test data in correct dependency order')

@@ -11,6 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from openai import OpenAI
 from dotenv import load_dotenv
 from tqdm import tqdm
+from logging_utils import setup_logging
 
 class ForeignKeyAnalyzerError(Exception):
     """Base exception class for ForeignKeyAnalyzer"""
@@ -57,31 +58,6 @@ def load_config() -> Dict:
     config['DB_INSTRUCTIONS'] = os.getenv('DB_INSTRUCTIONS', '')
     config['DB_DESCRIPTION'] = os.getenv('DB_DESCRIPTION', '')
     return config
-
-def setup_logging(log_level: str) -> logging.Logger:
-    """Setup logging configuration"""
-    # Create logs directory if it doesn't exist
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
-
-    # Create logger
-    logger = logging.getLogger('foreign_key_analyzer')
-    logger.setLevel(getattr(logging, log_level))
-    logger.handlers = []  # Remove any existing handlers
-
-    # File handler
-    timestamp = datetime.now().strftime('%Y%m%d')
-    file_handler = logging.FileHandler(f'logs/foreign_key_analysis_{timestamp}.log')
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-    logger.addHandler(file_handler)
-
-    # Console handler (errors only)
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.ERROR)
-    console_handler.setFormatter(logging.Formatter('ERROR: %(message)s'))
-    logger.addHandler(console_handler)
-
-    return logger
 
 class ForeignKeyAnalyzer:
     def __init__(self, config: Dict, logger: logging.Logger):
@@ -400,7 +376,7 @@ def main():
     try:
         # Load configuration and setup logging
         config = load_config()
-        logger = setup_logging(config['LOG_LEVEL'])
+        logger = setup_logging('foreign_key_analyzer', config['LOG_LEVEL'])
 
         # Create and run the foreign key analyzer
         print("Starting foreign key analysis...")
