@@ -8,6 +8,7 @@ Python scripts for database analysis, documentation, foreign key correction, and
 - [Database Analyzer](#database-analyzer) - Creates visual dependency graphs of database relationships
 - [Foreign Key Analyzer](#foreign-key-analyzer) - Identifies and suggests missing foreign key relationships
 - [Generate Test Data](#generate-test-data) - Creates realistic test data while respecting database constraints
+- [CSV to Database Import](#csv-to-database-import) - Imports CSV data into database tables while respecting foreign key constraints
 
 ## Prerequisites
 
@@ -166,6 +167,30 @@ python generate_test_data.py
 
 - Find the logs in `logs/test_data_generation_YYYYMMDD.log`
 - If `SAVE_SQL` is set, the SQL inserts will be found in `output/test_data_inserts__YYYYMMDDHHSS.sql`
+
+## CSV to Database Import
+
+A tool that imports data from CSV files into a database. It respects foreign key and automatically determines the correct order for data insertion based on table dependencies. It generates SQL files for the inserts so that the test data can be replayed on another database, and supports multiple CSV files per table.
+
+### Run
+
+The first time you run the script, please install the dependencies:
+
+```bash
+pip install -r requirements/csv_to_db.txt
+```
+
+Then run the script with a folder containing your CSV files:
+
+```bash
+python csv_to_db.py /path/to/csv/folder
+```
+
+**Note**:
+- CSV files should be named after their corresponding table names
+- Multiple files for the same table can be numbered (e.g., booking1.csv, booking2.csv)
+- The script will create an `output` directory containing SQL files for each table's inserts
+- Make sure your `.env` file contains the `DB_CONNECTION_STRING` variable
 
 ## Running Tests
 
