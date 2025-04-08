@@ -194,14 +194,13 @@ def process_csv_files(engine, folder_path: str, logger: logging.Logger):
                                 # Create the INSERT statement using SQLAlchemy's text() with parameters
                                 insert_stmt = text(f"INSERT INTO {table_name} ({', '.join(row_dict.keys())}) VALUES ({', '.join(':' + k for k in row_dict.keys())})")
                                 
-                                # Write to SQL file with actual values
-                                values_str = ', '.join(
-                                    f"'{str(v)}'" if isinstance(v, str) and v is not None
-                                    else 'NULL' if v is None
-                                    else str(v)
-                                    for v in row_dict.values()
-                                )
-                                f.write(f"INSERT INTO {table_name} ({', '.join(row_dict.keys())}) VALUES ({values_str});\n")
+                                # Write properly escaped SQL to file
+                                bound_stmt = insert_stmt.bindparams(**row_dict)
+                                compiled_sql = str(bound_stmt.compile(
+                                    engine,
+                                    compile_kwargs={"literal_binds": True}
+                                ))
+                                f.write(compiled_sql + ";\n")
                                 
                                 # Execute with parameters
                                 connection.execute(insert_stmt, row_dict)
